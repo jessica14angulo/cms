@@ -8,8 +8,7 @@
     <div class="panel-body">
         <app-contact-item
             *ngFor="let contactEl of contacts"
-            [contact]="contactEl"
-            (click)="onSelected(contactEl)">
+            [contact]="contactEl">
         </app-contact-item>
     </div>
 </div>

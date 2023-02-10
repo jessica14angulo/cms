@@ -1,7 +1,7 @@
 <div class="panel panel-default">
     <div class="panel-heading">
         <div class="row">
-            <!-- <h4>{{ contact.name }}</h4> -->
+            <h4 style="margin-left: .5em; font-weight: bold;">{{ contact.name }}</h4>
             <h3 style="margin-left: .5em;"></h3>
             <div class="pull-left">
                 <img 
@@ -11,13 +11,13 @@
                     style="max-height: 100px; margin-left: .5em;">
             </div>
             <div class="pull-right">
-                <button class="btn btn-primary" style="margin-right: .5em;">Edit</button>
-                <button class="btn btn-danger" style="margin-right: .5em;">Delete</button>
+                <a class="btn btn-primary" style="margin-right: .5em;" routerLink="edit">Edit</a>
+                <a class="btn btn-danger" style="margin-right: .5em;" (click)="onDelete()">Delete</a>
             </div>  
         </div>
     </div>
     <div class="panel-body">
-        <p>Email: <span> {{ contact.email }}</span></p>
-        <p>Phone: <span>{{ contact.phone }}</span></p>
+        <p><strong>Email:</strong>  <span> {{ contact.email }}</span></p>
+        <p><strong>Phone:</strong>  <span>{{ contact.phone }}</span></p>
     </div>
 </div>
