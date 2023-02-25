@@ -2,13 +2,17 @@
     <div class="panel-heading">
       <div class="row">
         <h4 class="pull-left" style="margin-left:.5em; font-weight: bold;">Contacts</h4>
-        <button class="btn btn-success pull-right" style="margin-right: .5em;">New Contact</button>
+        <a class="pull-right btn btn-success" routerLink="new">New Contact</a>      
       </div>
     </div>
     <div class="panel-body">
         <app-contact-item
-            *ngFor="let contactEl of contacts"
-            [contact]="contactEl">
+            *ngFor="let contactItem of contacts"
+            [contact]="contactItem"
+            dnd-draggable
+					  [dragEnabled]="true" 
+            [dragData]="contactItem" 
+            [dropZones]="['contactGroup']">
         </app-contact-item>
     </div>
 </div>
