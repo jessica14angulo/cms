@@ -12,8 +12,10 @@ import { NgForm } from '@angular/forms'
 })
 export class ContactEditComponent implements OnInit {
   originalContact: Contact;
-  contact: Contact = null;
+  contact: Contact;
   groupContacts: Contact[] = [];
+  
+  id: string;
 
   editMode: boolean = false;
 	hasGroup: boolean = false;
@@ -24,29 +26,58 @@ export class ContactEditComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute) {
     }
-  ngOnInit() {
-    this.route.params.subscribe (
-      (params: Params) => {
-         const id = params['id']
-         if (!id) {
-          this.editMode = false
-            return;
-         }
+  // ngOnInit() {
+  //   this.route.params.subscribe (
+  //     (params: Params) => {
+  //        const id = params['id'];
+  //        if (!id) {
+  //         this.editMode = false
+  //           return;
+  //        }
             
-         this.originalContact = this.contactService.getContact(id);
-         if (!this.originalContact) {
-          return;
-         }
+  //        this.originalContact = this.contactService.getContact(id);
+  //        if (!this.originalContact) {
+  //         return;
+  //        }
              
-         this.editMode = true
-         this.contact = JSON.parse(JSON.stringify(this.originalContact));
+  //        this.editMode = true
+  //        this.contact = JSON.parse(JSON.stringify(this.originalContact));
    
-         if (this.contact.group !== null && this.contact.group !== undefined) {
-          this.hasGroup = true;
-          this.contact = JSON.parse(JSON.stringify(this.originalContact.group));
-          this.groupContacts = this.contact.group.slice();
-         }    
-    }) 
+  //        if (this.contact.group !== null && this.contact.group !== undefined) {
+  //         this.hasGroup = true;
+  //         // this.contact = JSON.parse(JSON.stringify(this.originalContact.group));
+  //         // this.groupContacts = this.contact.group.slice();
+  //         this.groupContacts = [...this.contact.group];
+  //        }    
+  //   }) 
+  // }
+
+  ngOnInit(): void {
+    this.route.params
+    .subscribe(
+      (params: Params) => {
+        this.id = params['id'];
+        if(this.id == undefined || this.id == null){
+          this.editMode = false;
+          return
+        }
+        // this.originalContact = this.contactService.getContact(this.id);
+        this.contactService.getContact(this.id).subscribe((contactData) => {
+          this.originalContact = contactData.contact;
+        });
+  
+
+        if(this.originalContact == undefined || this.originalContact == null){
+          return
+        }
+        this.editMode = true;
+        this.contact = JSON.parse(JSON.stringify(this.originalContact));
+
+        if(this.contact.group){
+          this.groupContacts = JSON.parse(JSON.stringify(this.originalContact));
+        }
+      }
+    );
   }
 
   onSubmit(form: NgForm) {

@@ -9,7 +9,7 @@ import { Message } from '../message.model';
   styleUrls: ['./message-item.component.css']
 })
 export class MessageItemComponent implements OnInit {
-  messageSender: string;
+  messageSender: string = "";
   @Input() message: Message;
 
   constructor(private contactService: ContactService) { 
@@ -17,8 +17,9 @@ export class MessageItemComponent implements OnInit {
   }
 
   ngOnInit() {
-    let contact: Contact = this.contactService.getContact(this.message.sender);
-    // this.messageSender = contact.name;
-    this.messageSender = contact ? contact.name : 'Contact not found';
+    this.contactService.getContact(this.message.sender)
+      .subscribe(contactData => {
+        this.messageSender = contactData.contact.name;
+      })
   }
 }

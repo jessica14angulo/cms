@@ -19,17 +19,18 @@ export class DocumentService {
   
   constructor(private http: HttpClient) { 
     // this.documents = MOCKDOCUMENTS;
-    this.getDocuments();
-    this.maxDocumentId = this.getMaxId();
+
+    // this.getDocuments();
+    // this.maxDocumentId = this.getMaxId();
   }
 
   getDocuments() {
     // return this.documents.slice();
-    this.http.get('https://cms-app-86421-default-rtdb.firebaseio.com/documents.json')
+    this.http.get<{ message: string, documents: Document[] }>('http://localhost:3000/documents')
       .subscribe(
-        (documents: Document[]) => {
-          this.documents = documents;
-          this.maxDocumentId = this.getMaxId();
+        (documentData) => {
+          this.documents = documentData.documents;
+          // this.maxDocumentId = this.getMaxId();
           this.documents.sort((a, b) => (a.name < b.name) ? 1 : (a.name > b.name) ? -1 : 0)
           this.documentListChangedEvent.next(this.documents.slice());
         },
@@ -48,6 +49,15 @@ export class DocumentService {
     return null;
   }
 
+  sortAndSend(){
+    this.documents.sort((a, b) =>
+            a.name > b.name ? 1 : a.name < b.name ? -1 : 0
+          );
+  
+          //emit the next document list changed event
+          this.documentListChangedEvent.next(this.documents.slice());
+  }
+
   getMaxId(): number {
 
     let maxId = 0
@@ -61,22 +71,28 @@ export class DocumentService {
     return maxId
   }
 
-  addDocument(newDocument: Document) {
-    if (newDocument === undefined || newDocument === null) {
-      return
-    }   
+  addDocument(document: Document) {
+    if (!document) {
+      return;
+    }
 
-    this.maxDocumentId++
-    newDocument.id = this.maxDocumentId.toString();
-    this.documents.push(newDocument);
-    // const documentsListClone = this.documents.slice();
-    // this.documentListChangedEvent.next(documentsListClone);
-    this.storeDocuments();
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json'
+    });
+
+    document.id = '';
+    const strDocument = JSON.stringify(document);
+
+    this.http.post('http://localhost:3000/documents', strDocument, { headers: headers })
+      .subscribe(
+        (documents: Document[]) => {
+          this.documents = documents;
+          this.documentListChangedEvent.next(this.documents.slice());
+        });
   }
 
   updateDocument(originalDocument: Document, newDocument: Document) {
-    if (originalDocument === undefined || originalDocument === null || 
-      newDocument === undefined || originalDocument === null) {
+    if (!originalDocument || !newDocument) {
       return
     }
     
@@ -85,39 +101,83 @@ export class DocumentService {
       return
     }
         
-    newDocument.id = originalDocument.id;
-    this.documents[pos] = newDocument;
-    // const documentsListClone = this.documents.slice();
-    // this.documentListChangedEvent.next(documentsListClone);
-    this.storeDocuments();
-  }
-  deleteDocument(document: Document) {
-    if (document === undefined || document === null) {
-      return
-    }
-        
-    const pos = this.documents.indexOf(document)
-    if (pos < 0) {
-      return
-    }
-
-    this.documents.splice(pos, 1);
-    // this.documentListChangedEvent.next(this.documents.slice());
-    this.storeDocuments();
-  }
-
-  storeDocuments() {
-    let documents = JSON.stringify(this.documents);
-
-    const headers = new HttpHeaders({
+     //set headers
+     const headers = new HttpHeaders({
       'Content-Type': 'application/json'
     });
 
-    this.http.put('https://cms-app-86421-default-rtdb.firebaseio.com/documents.json', documents, { headers: headers })
+    //convert document object to string
+    const strDocument = JSON.stringify(newDocument);
+
+    //send patch request with original document id, new document object and headers
+    this.http.patch('http://localhost:3000/documents/' + originalDocument.id
+      , strDocument
+      , { headers: headers })
+      //subscribe to response
       .subscribe(
-        () => {
+        (documents: Document[]) => {
+          //assign updated document list
+          this.documents = documents;
+          //emit change
           this.documentListChangedEvent.next(this.documents.slice());
-        }
-      )
+        });
   }
+  deleteDocument(document: Document) {
+    if (!document) {
+      return
+    }
+
+    const pos = this.documents.findIndex(d => d.id === document.id);
+
+    if (pos < 0) {
+      return;
+    }
+        
+    this.http.delete('http://localhost:3000/documents/' + document.id)
+      //subscribe to response
+      .subscribe(
+        (documents: Document[]) => {
+          //assign modified document list
+          this.documents = documents;
+          //emit changes
+          this.documentListChangedEvent.next(this.documents.slice());
+        });
+  }
+
+  // deleteDocument(document: Document) {
+
+  //   if (!document) {
+  //     return;
+  //   }
+  
+  //   const pos = this.documents.findIndex(d => d.id === document.id);
+  
+  //   if (pos < 0) {
+  //     return;
+  //   }
+  
+  //   // delete from database
+  //   this.http.delete('http://localhost:3000/documents/' + document.id)
+  //     .subscribe(
+  //       (response: Response) => {
+  //         this.documents.splice(pos, 1);
+  //         this.sortAndSend();
+  //       }
+  //     );
+  // }
+
+  // storeDocuments() {
+  //   let documents = JSON.stringify(this.documents);
+
+  //   const headers = new HttpHeaders({
+  //     'Content-Type': 'application/json'
+  //   });
+
+  //   this.http.put('https://cms-app-86421-default-rtdb.firebaseio.com/documents.json', documents, { headers: headers })
+  //     .subscribe(
+  //       () => {
+  //         this.documentListChangedEvent.next(this.documents.slice());
+  //       }
+  //     )
+  // }
 }

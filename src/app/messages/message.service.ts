@@ -15,16 +15,16 @@ export class MessageService {
 
   constructor(private http: HttpClient) { 
     // this.messages = MOCKMESSAGES;
-    this.getMessages();
+    // this.getMessages();
   }
 
   getMessages() {
     // return this.messages.slice();
-    this.http.get('https://cms-app-86421-default-rtdb.firebaseio.com//messages.json')
+    this.http.get<{ message: string, messages: Message[] }>('http://localhost:3000/messages')
       .subscribe(
-        (messages: Message[]) => {
-          this.messages = messages;
-          this.maxMessageId = this.getMaxId();
+        (messagesData) => {
+          this.messages = messagesData.messages;
+          // this.maxMessageId = this.getMaxId();
           this.messages.sort((a, b) => (a.id < b.id) ? 1 : (a.id > b.id) ? -1 : 0)
           this.messageListChangedEvent.next(this.messages.slice());
         },
@@ -54,24 +54,44 @@ export class MessageService {
     return maxId;
   }
 
-  addMessage(message: Message) {
-    this.messages.push(message);
-    // this.messageChangedEvent.emit(this.messages.slice());
-    this.storeMessages();
-  }
+  addMessage(newMessage: Message) {
+    if (!newMessage) {
+      return;
+    }
 
-  storeMessages() {
-    let messages = JSON.stringify(this.messages);
-
+    //set headers
     const headers = new HttpHeaders({
       'Content-Type': 'application/json'
     });
 
-    this.http.put('https://cms-app-86421-default-rtdb.firebaseio.com/messages.json', messages, { headers: headers })
+    //convert object to string to send on request
+    newMessage.id = '';
+    const strMessage = JSON.stringify(newMessage);
+
+    //send request with object and headers
+    this.http.post('http://localhost:3000/messages', strMessage, { headers: headers })
+      //subscribe to response
       .subscribe(
-        () => {
+        (messages: Message[]) => {
+          //assign messages list
+          this.messages = messages;
+          //emit change
           this.messageListChangedEvent.next(this.messages.slice());
-        }
-      )
+        });
   }
+
+  // storeMessages() {
+  //   let messages = JSON.stringify(this.messages);
+
+  //   const headers = new HttpHeaders({
+  //     'Content-Type': 'application/json'
+  //   });
+
+  //   this.http.put('https://cms-app-86421-default-rtdb.firebaseio.com/messages.json', messages, { headers: headers })
+  //     .subscribe(
+  //       () => {
+  //         this.messageListChangedEvent.next(this.messages.slice());
+  //       }
+  //     )
+  // }
 }

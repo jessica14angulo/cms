@@ -5,6 +5,7 @@ var http = require('http');
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+var mongoose = require('mongoose');
 
 // import the routing file to handle the default (index) route
 var index = require('./server/routes/app');
@@ -14,6 +15,14 @@ const messageRoutes = require('./server/routes/messages');
 const contactRoutes = require('./server/routes/contacts');
 const documentsRoutes = require('./server/routes/documents');
 
+mongoose.connect('mongodb://127.0.0.1:27017/cms', { useNewUrlParser: true, useUnifiedTopology: true }, (err, res) => {
+  if (err) {
+    console.log('Could not connect to Database');
+  } else {
+    console.log('Connected to database...')
+  }
+});
+
 var app = express(); // create an instance of express
 
 // Tell express to use the following parsers for POST data
@@ -22,6 +31,19 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 app.use(logger('dev')); // Tell express to use the Morgan logger
+
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept"
+  );
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PATCH, PUT, DELETE, OPTIONS"
+  );
+  next();
+});
 
 // Tell express to use the specified director as the
 // root directory for your web site
