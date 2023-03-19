@@ -8,7 +8,6 @@ import { Subject } from 'rxjs';
   providedIn: 'root'
 })
 export class MessageService {
-  messageChangedEvent = new EventEmitter<Message[]>();
   messages: Message[] = [];
   messageListChangedEvent = new Subject<Message[]>();
   maxMessageId: number;
